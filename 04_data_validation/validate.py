@@ -120,6 +120,109 @@ def check_null_thresholds():
     print()
 
 
+def check_duplicates():
+    print("=" * 60)
+    print("CHECK 3: Duplicates and uniqueness")
+    print("=" * 60)
+
+    with engine.connect() as conn:
+        # Columns that are primary keys - verify Postgres's own guarantee
+        print("\n-- Primary key columns (should always show 0 duplicates) --")
+        pk_checks = [
+            ("dim_customers", "customer_id"),
+            ("dim_orders", "order_id"),
+            ("dim_products", "product_id"),
+            ("dim_sellers", "seller_id"),
+        ]
+        for table, column in pk_checks:
+            dupe_count = conn.execute(
+                text(f"""
+                    SELECT COUNT(*) FROM (
+                        SELECT {column} FROM {table}
+                        GROUP BY {column} HAVING COUNT(*) > 1
+                    ) sub
+                """)
+            ).scalar()
+            status = "OK" if dupe_count == 0 else "UNEXPECTED"
+            print(f"  {table}.{column:<20} duplicate values={dupe_count} [{status}]")
+
+        # The review_id case - expected repeats, check the count matches what we documented
+        print("\n-- dim_reviews.review_id (repeats expected, verifying against documented finding) --")
+        review_dupes = conn.execute(
+            text("""
+                SELECT COUNT(*) FROM (
+                    SELECT review_id FROM dim_reviews
+                    GROUP BY review_id HAVING COUNT(*) > 1
+                ) sub
+            """)
+        ).scalar()
+        expected = 789
+        status = "MATCHES DOCUMENTED FINDING" if review_dupes == expected else "CHANGED - INVESTIGATE"
+        print(f"  review_ids appearing more than once: {review_dupes} (expected {expected}) [{status}]")
+
+        # customer_id vs customer_unique_id - confirm the expected repeat pattern
+        print("\n-- dim_customers: customer_id vs customer_unique_id --")
+        total_customers = conn.execute(text("SELECT COUNT(*) FROM dim_customers")).scalar()
+        unique_people = conn.execute(
+            text("SELECT COUNT(DISTINCT customer_unique_id) FROM dim_customers")
+        ).scalar()
+        returning = total_customers - unique_people
+        print(f"  Total customer_id records: {total_customers}")
+        print(f"  Distinct customer_unique_id (real people): {unique_people}")
+        print(f"  Implied returning-customer order records: {returning}")
+
+    print()
+
+
+def check_integrity_and_ranges():
+    print("=" * 60)
+    print("CHECK 4: Referential integrity and value ranges")
+    print("=" * 60)
+
+    with engine.connect() as conn:
+        print("\n-- Orphaned foreign keys (should always be 0, Postgres enforces this) --")
+        fk_checks = [
+            ("fact_order_items", "product_id", "dim_products", "product_id"),
+            ("fact_order_items", "seller_id", "dim_sellers", "seller_id"),
+            ("fact_order_items", "order_id", "dim_orders", "order_id"),
+            ("dim_reviews", "order_id", "dim_orders", "order_id"),
+        ]
+        for child_table, child_col, parent_table, parent_col in fk_checks:
+            orphans = conn.execute(
+                text(f"""
+                    SELECT COUNT(*) FROM {child_table} c
+                    LEFT JOIN {parent_table} p ON c.{child_col} = p.{parent_col}
+                    WHERE p.{parent_col} IS NULL
+                """)
+            ).scalar()
+            status = "OK" if orphans == 0 else "BROKEN"
+            print(f"  {child_table}.{child_col} -> {parent_table}.{parent_col}: {orphans} orphans [{status}]")
+
+        print("\n-- Value range checks --")
+        neg_price = conn.execute(
+            text("SELECT COUNT(*) FROM fact_order_items WHERE price < 0")
+        ).scalar()
+        print(f"  Negative prices in fact_order_items: {neg_price} [{'OK' if neg_price == 0 else 'FAIL'}]")
+
+        bad_scores = conn.execute(
+            text("SELECT COUNT(*) FROM dim_reviews WHERE review_score NOT BETWEEN 1 AND 5")
+        ).scalar()
+        print(f"  Review scores outside 1-5: {bad_scores} [{'OK' if bad_scores == 0 else 'FAIL'}]")
+
+        bad_dates = conn.execute(
+            text("""
+                SELECT COUNT(*) FROM dim_orders 
+                WHERE order_delivered_customer_date IS NOT NULL 
+                AND order_delivered_customer_date < order_purchase_timestamp
+            """)
+        ).scalar()
+        print(f"  Orders delivered before they were purchased: {bad_dates} [{'OK' if bad_dates == 0 else 'FAIL'}]")
+
+    print()
+
+
 if __name__ == "__main__":
     check_row_counts()
     check_null_thresholds()
+    check_duplicates()
+    check_integrity_and_ranges()
