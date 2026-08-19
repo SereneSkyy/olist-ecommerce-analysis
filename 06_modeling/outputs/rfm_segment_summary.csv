@@ -1,0 +1,5 @@
+segment,customer_count,avg_recency_days,avg_frequency,avg_monetary,total_monetary
+At Risk,23576,370.46,1.05,238.37,5619728.85
+Champions,24147,117.37,1.07,236.63,5713919.05
+Lost,24027,370.61,1.01,47.42,1139480.47
+New / Low Value,23670,117.09,1.01,47.25,1118515.33

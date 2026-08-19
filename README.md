@@ -103,18 +103,3 @@ python 04_data_validation/validate.py
 
 # 5. Run analysis / modeling notebooks or scripts as needed
 ```
-
-## What This Project Does Differently
-
-This project uses the same public dataset as many existing Olist analyses, but differs in a few concrete ways:
-
-- Uses Postgres rather than SQLite, enabling indexing and query-plan analysis.
-- Includes an explicit data-validation stage with a documented validation report, not just cleaning.
-- Adds the marketing-funnel dataset to connect acquisition and conversion to downstream delivery and revenue outcomes.
-- Addresses class imbalance directly in the delivery-delay model and reports precision/recall/F1 rather than accuracy alone.
-- Ships as a browser-accessible dashboard rather than a downloadable `.pbix` file.
-
-## Author
-
-[Your name]
-[LinkedIn / portfolio link]

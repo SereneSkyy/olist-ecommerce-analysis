@@ -3,3 +3,9 @@ pandas
 sqlalchemy
 psycopg2-binary
 python-dotenv
+scikit-learn
+matplotlib
+seaborn
+jupyter
+streamlit
+plotly

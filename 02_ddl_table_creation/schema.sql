@@ -63,6 +63,30 @@ CREATE TABLE dim_reviews (
     PRIMARY KEY (review_id, order_id)
 );
 
+CREATE TABLE dim_marketing_leads (
+    mql_id VARCHAR(32) PRIMARY KEY,
+    first_contact_date DATE,
+    landing_page_id VARCHAR(32),
+    origin VARCHAR(50)
+);
+
+CREATE TABLE dim_closed_deals (
+    mql_id VARCHAR(32) PRIMARY KEY REFERENCES dim_marketing_leads(mql_id),
+    seller_id VARCHAR(32) REFERENCES dim_sellers(seller_id),
+    sdr_id VARCHAR(32),
+    sr_id VARCHAR(32),
+    won_date DATE,
+    business_segment VARCHAR(100),
+    lead_type VARCHAR(50),
+    lead_behaviour_profile VARCHAR(50),
+    has_company VARCHAR(10),
+    has_gtin VARCHAR(10),
+    average_stock VARCHAR(50),
+    business_type VARCHAR(50),
+    declared_product_catalog_size NUMERIC,
+    declared_monthly_revenue NUMERIC
+);
+
 -- Fact tables
 
 CREATE TABLE fact_order_items (

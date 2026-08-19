@@ -56,6 +56,14 @@ LOAD_PLAN = [
         "csv": "olist_order_payments_dataset.csv",
         "table": "fact_order_payments",
     },
+        {
+        "csv": "olist_marketing_qualified_leads_dataset.csv",
+        "table": "dim_marketing_leads",
+    },
+    {
+        "csv": "olist_closed_deals_dataset.csv",
+        "table": "dim_closed_deals",
+    },
 ]
 
 def load_table(csv_filename, table_name):
@@ -63,7 +71,11 @@ def load_table(csv_filename, table_name):
     print(f"Reading {csv_filename}...")
     df = pd.read_csv(path)
 
-    print(f" {len(df)} rows found. Loading into {table_name}...")
+    print(f" {len(df)} rows found. Truncating {table_name} first...")
+    with engine.begin() as conn:
+        conn.execute(text(f"TRUNCATE TABLE {table_name} CASCADE"))
+
+    print(f" Loading into {table_name}...")
     df.to_sql(table_name, engine, if_exists="append", index=False)
     print(f" Done: {table_name}\n")
 
