@@ -12,8 +12,8 @@ End-to-end analytics project on the Brazilian e-commerce marketplace Olist, cove
 
 ## Dataset
 
-- **Core dataset:** [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 8 relational CSVs covering orders, customers, products, sellers, payments, reviews, and geolocation (2016–2018).
-- **Marketing funnel dataset:** [Olist Marketing Funnel](https://www.kaggle.com/datasets/olistbr/marketing-funnel-olist) — Olist's own B2B sales funnel data for onboarding sellers onto the platform.
+- **Core dataset:** [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) : 8 relational CSVs covering orders, customers, products, sellers, payments, reviews, and geolocation (2016–2018).
+- **Marketing funnel dataset:** [Olist Marketing Funnel](https://www.kaggle.com/datasets/olistbr/marketing-funnel-olist) : Olist's own B2B sales funnel data for onboarding sellers onto the platform.
 
 Full source details, licenses, and known cross-dataset issues are documented in `01_data_sources/data_sources.md`.
 
@@ -50,8 +50,8 @@ Raw CSVs and the Python virtual environment are excluded from version control (`
 
 Star schema, grain-driven design:
 
-- **`fact_order_items`** — one row per product line item per order (composite key: `order_id` + `order_item_id`). Measures: `price`, `freight_value`.
-- **`fact_order_payments`** — one row per payment transaction per order (composite key: `order_id` + `payment_sequential`), since payments can be split across multiple methods.
+- **`fact_order_items`** : one row per product line item per order (composite key: `order_id` + `order_item_id`). Measures: `price`, `freight_value`.
+- **`fact_order_payments`** : one row per payment transaction per order (composite key: `order_id` + `payment_sequential`), since payments can be split across multiple methods.
 - **Dimensions:** `dim_customers`, `dim_orders`, `dim_products`, `dim_sellers`, `dim_reviews`, `dim_geolocation`, `dim_product_category_translation`, `dim_marketing_leads`, `dim_closed_deals`.
 
 Two design decisions worth calling out:
@@ -63,10 +63,10 @@ Two design decisions worth calling out:
 
 A dedicated validation script (`04_data_validation/validate.py`) runs four categories of checks against the loaded warehouse and produces a written report:
 
-1. **Row count reconciliation** — loaded table counts vs. source CSV counts
-2. **Null thresholds** — hard-required columns (0% tolerance) vs. status-dependent columns (nulls expected, verified against business logic)
-3. **Duplicates/uniqueness** — including a regression test for the `review_id` finding above
-4. **Referential integrity and value ranges** — independent verification of what Postgres's constraints already enforce, plus logic Postgres can't enforce on its own (e.g. no order delivered before it was purchased)
+1. **Row count reconciliation** : loaded table counts vs. source CSV counts
+2. **Null thresholds** : hard-required columns (0% tolerance) vs. status-dependent columns (nulls expected, verified against business logic)
+3. **Duplicates/uniqueness** : including a regression test for the `review_id` finding above
+4. **Referential integrity and value ranges** : independent verification of what Postgres's constraints already enforce, plus logic Postgres can't enforce on its own (e.g. no order delivered before it was purchased)
 
 Full findings, including every issue found and how it was resolved, are in `04_data_validation/validation_report.md`. Highlights:
 
@@ -106,8 +106,8 @@ The naive model achieves 92% accuracy purely by defaulting to "on time," since 9
 
 ## Dashboards
 
-- **Streamlit** (`07_dashboard/app.py`) — 7-page app querying the Postgres warehouse live: overview KPIs, revenue/delay by category, delay by seller region, delay's effect on reviews, RFM segments, marketing channel performance, and the delivery-delay model comparison. Run with `streamlit run 07_dashboard/app.py`.
-- **Power BI** — connects directly to the same Postgres warehouse (`Import` mode), recreates the same star-schema relationships, and blends in the RFM CSV output alongside the live database connection. Published via Power BI's "Publish to Web" for browser access without requiring Power BI Desktop. [Link to published report]
+- **Streamlit** (`07_dashboard/app.py`) : 7-page app querying the Postgres warehouse live: overview KPIs, revenue/delay by category, delay by seller region, delay's effect on reviews, RFM segments, marketing channel performance, and the delivery-delay model comparison. Run with `streamlit run 07_dashboard/app.py`.
+- **Power BI** : connects directly to the same Postgres warehouse (`Import` mode), recreates the same star-schema relationships, and blends in the RFM CSV output alongside the live database connection. Published via Power BI's "Publish to Web" for browser access without requiring Power BI Desktop. [Link to published report]
 
 ## Key Findings
 
